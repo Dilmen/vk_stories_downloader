@@ -332,11 +332,11 @@ def main():
         json_file = download_file(url, Path("json"), f'{datetime.now().strftime("%d-%m-%Y_%H.%M.%S")}.json')
     else:
         json_file = arguments.file
-    
+
     if json_file is None:
         print_log(f'Error - json file don`t downloaded!')
         sys.exit()
-    
+
     try:
         with open(json_file, "r", encoding='utf-8') as read_file:
             data = json.load(read_file)
