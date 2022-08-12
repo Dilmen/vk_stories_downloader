@@ -46,3 +46,44 @@ options:
   --path PATH_STORIES   The path where the stories should be downloaded.
   --version             show program's version number and exit
 ```
+____
+Directory and file structure
+```
+.
+|-- json
+|   `-- yy-yy-yyyy_yy.yy.yy.json
+|-- logs
+|   `-- yy-yy-yyyy_yy.yy.yy.log
+|-- stories
+|   |-- Name (user id)
+|   |   |-- stories id
+|   |   |   |-- xxxxxxxxx.mp4
+|   |   |   |-- first_frame
+|   |   |   |   |-- first_frame 130x231.jpg
+|   |   |   |   |-- first_frame 160x284.jpg
+|   |   |   |   |-- first_frame 320x569.jpg
+|   |   |   |   `-- first_frame 800x1422.jpg
+|   |   |   `-- image
+|   |   |       |-- image 130x96.jpg
+|   |   |       |-- image 160x120.jpg
+|   |   |       |-- image 320x240.jpg
+|   |   |       `-- image 800x450.jpg
+|   |   `-- stories id
+|   |       `-- xxxxxxxxx.jpg
+|   `-- Group name (group id)
+|       |-- stories id
+|       |   |-- xxxxxxxxx.mp4
+|       |   |-- first_frame
+|       |   |   |-- first_frame 130x231.jpg
+|       |   |   |-- first_frame 160x284.jpg
+|       |   |   |-- first_frame 320x569.jpg
+|       |   |   `-- first_frame 800x1422.jpg
+|       |   `-- image
+|       |       |-- image 130x96.jpg
+|       |       |-- image 160x120.jpg
+|       |       |-- image 320x240.jpg
+|       |       `-- image 800x450.jpg
+|       `-- stories id
+|           `-- xxxxxxxxxx.mp4
+`-- vk_stories.py
+```
