@@ -55,10 +55,10 @@ Directory and file structure
 |-- logs
 |   `-- yy-yy-yyyy_yy.yy.yy.log
 |-- stories
-|   |-- Name (user id)
-|   |   |-- stories id
+|   |-- Name (user_id)
+|   |   |-- stories_id
 |   |   |   |-- xxxxxxxxx.mp4
-|   |   |   |-- first_frame
+|   |   |   |-- first_frame 
 |   |   |   |   |-- first_frame 130x231.jpg
 |   |   |   |   |-- first_frame 160x284.jpg
 |   |   |   |   |-- first_frame 320x569.jpg
@@ -68,22 +68,12 @@ Directory and file structure
 |   |   |       |-- image 160x120.jpg
 |   |   |       |-- image 320x240.jpg
 |   |   |       `-- image 800x450.jpg
-|   |   `-- stories id
+|   |   `-- stories_id
 |   |       `-- xxxxxxxxx.jpg
-|   `-- Group name (group id)
-|       |-- stories id
-|       |   |-- xxxxxxxxx.mp4
-|       |   |-- first_frame
-|       |   |   |-- first_frame 130x231.jpg
-|       |   |   |-- first_frame 160x284.jpg
-|       |   |   |-- first_frame 320x569.jpg
-|       |   |   `-- first_frame 800x1422.jpg
-|       |   `-- image
-|       |       |-- image 130x96.jpg
-|       |       |-- image 160x120.jpg
-|       |       |-- image 320x240.jpg
-|       |       `-- image 800x450.jpg
-|       `-- stories id
+|   `-- Group_name (group_id)
+|       |-- stories_id
+|       |   |-- xxxxxxxxяx.mp4
+|       `-- stories_id
 |           `-- xxxxxxxxxx.mp4
 `-- vk_stories.py
 ```
