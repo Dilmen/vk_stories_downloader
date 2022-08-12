@@ -15,7 +15,7 @@ import vk_api
 
 version = "0.4.1"
 
-def download_file(url: str, path: Path, title: str = None, attempt: int = 0) -> (None | Path):
+def download_file(url: str, path: Path, title: str = None, attempt: int = 0):
     if attempt >= 10:
         return
 
@@ -79,7 +79,7 @@ def download_file(url: str, path: Path, title: str = None, attempt: int = 0) -> 
     return
 
 
-def check_on_emptyfolder_and_remove(path: Path) -> None:
+def check_on_emptyfolder_and_remove(path: Path):
     try:
         if not len(tuple(path.iterdir())):
             path.rmdir()
@@ -91,7 +91,7 @@ def check_on_emptyfolder_and_remove(path: Path) -> None:
         print_log(f'\nOps! Error : {e}')
 
 
-def download_progress(blocks_read: int, block_size: int, total_size: int) -> None:
+def download_progress(blocks_read: int, block_size: int, total_size: int):
     if blocks_read == 0:
         widgets = [pb.Percentage(), ' ', pb.Bar(), ' ', pb.ETA(), ' ',
                    pb.FileTransferSpeed()]
@@ -101,7 +101,7 @@ def download_progress(blocks_read: int, block_size: int, total_size: int) -> Non
     download_progress.progress_bar.update(blocks_read * block_size)
 
 
-def change_modification_date(path: Path, modTime: int) -> None:
+def change_modification_date(path: Path, modTime: int):
     if not path.exists():
         return
 
@@ -136,13 +136,13 @@ def bar_gen(f: int):
     return f'[{"".join(["#" if x * 10 <= f else "_" for x in range(1,11)])}]'
 
 
-def print_count(count: int) -> None:
+def print_count(count: int):
     count_ = ((count_t - count) / count_t) * 100
 
     print_log(f'\n{"":5}Remain stories - {count} | Completed on {count_}% {bar_gen(count_)} {int(count_)}%', end="\n\n")
 
 
-def count_stories(datas: dict) -> [int, int, int]:
+def count_stories(datas: dict):
     ads_count = 0
     friends = 0
     public = 0
@@ -161,11 +161,11 @@ def count_stories(datas: dict) -> [int, int, int]:
     return ads_count, friends, public
 
 
-def print_info_stories(block: dict) -> None:
+def print_info_stories(block: dict):
     print_log(f'id - {block.get("id")} | type - {block.get("type")} | date - {datetime.fromtimestamp(block.get("date")).strftime("%d/%m/%Y, %H:%M:%S")}')
 
 
-def stories_mod(datas: dict, user: str, count: int) -> int:
+def stories_mod(datas: dict, user: str, count: int):
     for stories in datas.get("stories"):
         print_info_stories(stories)
         
@@ -179,7 +179,7 @@ def stories_mod(datas: dict, user: str, count: int) -> int:
     return count
 
 
-def get_sizes(data: dict) -> dict:
+def get_sizes(data: dict):
     sizes = {}
 
     for size in data:
@@ -188,14 +188,14 @@ def get_sizes(data: dict) -> dict:
     return sizes
 
 
-def ar(url: str, output: Path, date: int) -> None:
+def ar(url: str, output: Path, date: int):
     check_file = download_file(url, output)
 
     if check_file is not None:
         change_modification_date(check_file, date)
 
 
-def download_stories(block: dict, stories_type: str, user: str) -> None:
+def download_stories(block: dict, stories_type: str, user: str):
     output = path_stories.joinpath(f'stories/{user} ({block.get("owner_id")})/{block.get("id")}')
     date = block.get("date")
 
@@ -252,7 +252,7 @@ def download_stories(block: dict, stories_type: str, user: str) -> None:
         download_preview(block.get("video", {}), "first_frame", output.joinpath("first_frame"), date)
 
 
-def download_preview(block: dict, name: str, output: str, date: int) -> None:
+def download_preview(block: dict, name: str, output: str, date: int):
     if images := block.get(name, 0):
         print_log(f"{'':5}video image | type - {name}")
 
@@ -265,7 +265,7 @@ def download_preview(block: dict, name: str, output: str, date: int) -> None:
         print()
 
 
-def print_log(*string: str, end: str = "\n", out = sys.stdout, sep: str = " ") -> None:
+def print_log(*string: str, end: str = "\n", out = sys.stdout, sep: str = " "):
     string = " ".join(string)
     
     if logs:
@@ -274,12 +274,12 @@ def print_log(*string: str, end: str = "\n", out = sys.stdout, sep: str = " ") -
     print(string, end=end, file=out, sep=sep)
 
 
-def completed(path: Path, name: str) -> None:
+def completed(path: Path, name: str):
     with open(Path(path, ".completed"), "a+") as f:
         f.write(f'{name}\n')
 
 
-def check_in_completed(path: Path, name) -> bool:
+def check_in_completed(path: Path, name):
     if (path := Path(path, ".completed")).is_file():
         with open(path) as f:
             for line in f:
@@ -289,7 +289,7 @@ def check_in_completed(path: Path, name) -> bool:
     return False
 
 
-def sto(stories: dict, count: int) -> int:
+def sto(stories: dict, count: int):
     name = stories.get("name")
     user = replace_specific_chapters(name)
 
@@ -298,7 +298,7 @@ def sto(stories: dict, count: int) -> int:
     return stories_mod(stories, user, count)
 
 
-def get_token() -> None:
+def get_token():
 
     config_filename = ".vk_config.v2.json"
     login = input("Number input: ")
