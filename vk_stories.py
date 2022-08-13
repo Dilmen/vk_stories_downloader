@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import string
 import urllib.request
 import json
 from datetime import datetime
@@ -17,25 +18,26 @@ version = "0.4.1"
 
 def download_file(url: str, path: Path, title: str = None, attempt: int = 0):
     if attempt >= 10:
-        return
+        return None
+
+    if not create_dir(path):
+        download_file(url, path, title, attempt + 1)
+        return None
 
     title = title or Path(url).stem + Path(url).suffix.split("?")[0]
     file_stories = path.joinpath(title)
 
-    if not create_dir(path):
-        download_file(url, path, title, attempt + 1)
-
     try:
         if file_stories.is_file():
-            if check_in_completed(path, title):
-                return
-            else:
+            if not check_in_completed(path, title):
                 request = urllib.request.urlopen(url)
                 file_size = request.getheader('Content-Length')
 
                 if file_stories.stat().st_size == int(file_size):
                     completed(path, title)
-                    return
+                    return None
+            else:
+                return None
 
         timeout = 10
 
@@ -50,7 +52,8 @@ def download_file(url: str, path: Path, title: str = None, attempt: int = 0):
         for i in range(sleep):
             sys.stdout.write(f'\r{"":>10}Zzzz{(sleep - i):3}')
             time.sleep(1)
-            if i + 1 == sleep: sys.stdout.write(f'\r{"":20}')
+            if i + 1 == sleep:
+                sys.stdout.write(f'\r{"":20}')
             sys.stdout.flush()
 
         print()
@@ -76,15 +79,15 @@ def download_file(url: str, path: Path, title: str = None, attempt: int = 0):
 
     check_on_emptyfolder_and_remove(path)
 
-    return
+    return None
 
 
 def check_on_emptyfolder_and_remove(path: Path):
     try:
-        if not len(tuple(path.iterdir())):
+        if not list(path.iterdir()):
             path.rmdir()
 
-        if not len(tuple(path.parent.iterdir())):
+        if not list(path.parent.iterdir()):
             path.parent.rmdir()
 
     except OSError as e:
@@ -103,7 +106,7 @@ def download_progress(blocks_read: int, block_size: int, total_size: int):
 
 def change_modification_date(path: Path, modTime: int):
     if not path.exists():
-        return
+        return None
 
     try:
         os.utime(path, (modTime, modTime))
@@ -113,6 +116,8 @@ def change_modification_date(path: Path, modTime: int):
 
     except OSError as e:
         print_log(f'\nOps! Error : {e}')
+
+    return None
 
 
 def create_dir(path: Path):
@@ -126,18 +131,15 @@ def create_dir(path: Path):
 
 
 def replace_specific_chapters(name: str):
-    for i in "\/:*?\"<>|":
-        name = name.replace(i, "_")
-
-    return name
+    return name.translate(remove_punctuation_map)
 
 
 def bar_gen(f: int):
     return f'[{"".join(["#" if x * 10 <= f else "_" for x in range(1,11)])}]'
 
 
-def print_count(count: int):
-    count_ = ((count_t - count) / count_t) * 100
+def print_count(count: int, count_all: int):
+    count_ = ((count_all - count) / count_all) * 100
 
     print_log(f'\n{"":5}Remain stories - {count} | Completed on {count_}% {bar_gen(count_)} {int(count_)}%', end="\n\n")
 
@@ -165,16 +167,16 @@ def print_info_stories(block: dict):
     print_log(f'id - {block.get("id")} | type - {block.get("type")} | date - {datetime.fromtimestamp(block.get("date")).strftime("%d/%m/%Y, %H:%M:%S")}')
 
 
-def stories_mod(datas: dict, user: str, count: int):
+def stories_mod(datas: dict, user: str, count: int, count_all: int):
     for stories in datas.get("stories"):
         print_info_stories(stories)
-        
+
         if (stories_type := stories.get("type", 0)) in ("photo", "video"):
             download_stories(stories, stories_type, user)
 
         count -= 1
 
-        print_count(count)
+        print_count(count, count_all)
 
     return count
 
@@ -184,7 +186,7 @@ def get_sizes(data: dict):
 
     for size in data:
         sizes.update({size.get("type"): {"size": f'{size.get("width")}x{size.get("height")}', "url": size.get("url")}})
-    
+
     return sizes
 
 
@@ -200,10 +202,10 @@ def download_stories(block: dict, stories_type: str, user: str):
     date = block.get("date")
 
     if stories_type == "photo" and download_type in ("photo", "all"):
-        
+
         sizes = get_sizes(block.get(stories_type).get("sizes"))
 
-        if arguments.image_quality is not None and (arguments.image_quality in sizes.keys()):
+        if arguments.image_quality is not None and (arguments.image_quality in sizes):
             stories = {arguments.image_quality : sizes.get(arguments.image_quality)}
         else:
             if quality == "max":
@@ -212,7 +214,7 @@ def download_stories(block: dict, stories_type: str, user: str):
                 stories = {"s": sizes.get("s", {})}
             else:
                 stories = sizes
-        
+
         for key, value in stories.items():
             print_log(f'size - {value.get("size")} | url - {value.get("url")}')
             ar(value.get("url"), output, date)
@@ -231,9 +233,7 @@ def download_stories(block: dict, stories_type: str, user: str):
         videos_quality = tuple(videos.keys())
         choose_quality = f'mp4_{video_quality}'
 
-        """TODO:
-            added choose quality if selected quality is not available
-        """
+        #    added choose quality if selected quality is not available
 
         if video_quality is None:
             if quality == "max":
@@ -242,7 +242,7 @@ def download_stories(block: dict, stories_type: str, user: str):
                 videos = {videos_quality[-1]: videos.get(videos_quality[0])}
         else:
             videos = {video_quality: videos.get(choose_quality, 0)} if choose_quality in videos_quality else {videos_quality[0]: videos.get(videos_quality[0])}
-        
+
         for qulity, url in videos.items():
             print_log(f'size - {qulity} | url - {url}')
             ar(url, output, date)
@@ -254,36 +254,36 @@ def download_stories(block: dict, stories_type: str, user: str):
     save_stories_info(block, output)
 
 
-def download_preview(block: dict, name: str, output: str, date: int):
+def download_preview(block: dict, name: str, output: Path, date: int):
     if images := block.get(name, 0):
         print_log(f"{'':5}video image | type - {name}")
 
         for image in images:
             print_log(f'size - {image.get("width")}x{image.get("height")} | url - {image.get("url")}')
 
-            if (ar := download_file(image.get("url"), output, f'{name} {image.get("width")}x{image.get("height")}.jpg')) is not None:
-                change_modification_date(ar, date)
-        
+            if (path := download_file(image.get("url"), output, f'{name} {image.get("width")}x{image.get("height")}.jpg')) is not None:
+                change_modification_date(path, date)
+
         print()
 
 
-def print_log(*string: str, end: str = "\n", out = sys.stdout, sep: str = " "):
-    string = " ".join(string)
-    
-    if logs:
-        logging.info(string.replace("\n", "").strip())
+def print_log(*string_: str, end: str = "\n", out = sys.stdout, sep: str = " "):
+    string_ = " ".join(string_)
 
-    print(string, end=end, file=out, sep=sep)
+    if logs:
+        logging.info(string_.replace("\n", "").strip())
+
+    print(string_, end=end, file=out, sep=sep)
 
 
 def completed(path: Path, name: str):
-    with open(Path(path, ".completed"), "a+") as f:
+    with open(Path(path, ".completed"), "a+", encoding="utf-8") as f:
         f.write(f'{name}\n')
 
 
 def check_in_completed(path: Path, name):
     if (path := Path(path, ".completed")).is_file():
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 if line.rstrip("\n") == name:
                     return True
@@ -297,7 +297,7 @@ def sto(stories: dict, count: int):
 
     print_log(f'{"":10}name - {name}', end="\n\n")
 
-    return stories_mod(stories, user, count)
+    return stories_mod(stories, user, count, count)
 
 
 def get_token():
@@ -313,12 +313,18 @@ def get_token():
         print_log(f'\nError - {e}\n')
         get_token()
 
-        return
-    
-    with open("token", "w") as f:
+        return None
+
+    with open(".token", "w", encoding="utf-8") as f:
         f.write(vk_session.token.get("access_token"))
-    
+
     print()
+
+    return None
+
+
+def custom_file_name():
+    return None
 
 
 def save_stories_info(stories: dict, output: Path):
@@ -329,22 +335,19 @@ def save_stories_info(stories: dict, output: Path):
 
 def main():
     if arguments.file is None:
-        token = ""
+        token = arguments.token.strip()
 
-        if arguments.token is None:
-            try:
-                if arguments.token_file is None:
-                    if Path("token").exists():
-                        token = open("token").read().replace("\n","").strip()
-                    else:
-                        get_token()
-                else:
-                    token = open(arguments.token_file).read().replace("\n","").strip()
-            except FileNotFoundError as e:
-                print_log(f'Error - {e}')
-                sys.exit()
-        else:
-            token = arguments.token.strip()
+        if not token:
+            if Path(arguments.token_file).is_file():
+                with open(arguments.token_file, encoding="utf-8") as fp:
+                    token = fp.read().replace("\n","").strip()
+            elif arguments.token_file != ".token":
+                print_log(f"Error - file {arguments.token_file} not found")
+            else:
+                get_token()
+                main()
+
+            return None
 
         url = f'https://api.vk.com/method/stories.get?access_token={token}&v=5.126'
 
@@ -354,7 +357,7 @@ def main():
         json_file = arguments.file
 
     if json_file is None:
-        print_log(f'Error - json file don`t downloaded!')
+        print_log('Error - json file don`t downloaded!')
         sys.exit()
 
     try:
@@ -378,25 +381,26 @@ def main():
     if arguments.dump or not json_file:
         sys.exit()
 
-    global count_t
     adsC, friends, public = count_stories(data.get("response"))
-    count_t = count = adsC + friends + public
+    count_all = count = adsC + friends + public
 
     print_log(f'{"":5}Count stories: friends - {friends} | public - {public} | ads - {adsC} | all - {count}')
     time.sleep(5)
 
     for stories in data.get("response").get("items"):
         if stories.get("type", 0) == "stories":
-            count = sto(stories, count)
+            count = sto(stories, count, count_all)
         elif stories := stories.get("grouped", 0):
             for stories_grouped in stories:
-                count = sto(stories_grouped, count)
+                count = sto(stories_grouped, count, count_all)
 
     if ads and (data := data.get("response").get("ads", {}).get("items", 0)):
         for ads_stories in data:
-            count = stories_mod(ads_stories, "ADS", count)
+            count = stories_mod(ads_stories, "ADS", count, count_all)
 
     print_log(f'{"":5}FIN!')
+
+    return None
 
 
 parser = argparse.ArgumentParser(description='Script to download stories from VK')
@@ -411,8 +415,8 @@ parser.add_argument('--ads', action='store_true', dest='ads', help='download ads
 parser.add_argument('--sleep',default=3, dest='sleep', help='Provide sleep timer', type=int)
 parser.add_argument('--log', action='store_true', dest='log', help='Write to log file')
 parser.add_argument('--dump', action='store_true', dest='dump', help='download only dump and exit')
-parser.add_argument('--token', type=str, dest='token', help='token')
-parser.add_argument('--token-file', type=str, dest='token_file', help='token file')
+parser.add_argument('--token', default="", type=str, dest='token', help='token')
+parser.add_argument('--token-file', type=str, default=".token", dest='token_file', help='token file')
 parser.add_argument('--path', type=str, default=".", dest='path_stories', help='The path where the stories should be downloaded.')
 parser.add_argument('--save-storie-info', action='store_true', dest='ssi', help='Save info about stories to file "storie_info.json"')
 parser.add_argument('--version', action='version', version=f"VK stories downloader v.{version}")
@@ -425,8 +429,8 @@ sleep = arguments.sleep
 logs = arguments.log
 video_quality = arguments.video_quality
 path_stories = Path(arguments.path_stories)
-count_t = 0
 download_type = "all"
+remove_punctuation_map = dict((ord(char), None) for char in string.punctuation)
 
 if arguments.video:
     download_type = "video"
