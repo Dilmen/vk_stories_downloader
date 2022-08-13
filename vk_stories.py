@@ -209,9 +209,9 @@ def download_stories(block: dict, stories_type: str, user: str):
             stories = {arguments.image_quality : sizes.get(arguments.image_quality)}
         else:
             if quality == "max":
-                stories = {"w": sizes.get("w", {})}
+                stories = {"w": sizes.get("w", {"url": ""})}
             elif quality == "low":
-                stories = {"s": sizes.get("s", {})}
+                stories = {"s": sizes.get("s", {"url": ""})}
             else:
                 stories = sizes
 
@@ -291,13 +291,13 @@ def check_in_completed(path: Path, name):
     return False
 
 
-def sto(stories: dict, count: int):
+def sto(stories: dict, count: int, count_all: int):
     name = stories.get("name")
     user = replace_specific_chapters(name)
 
     print_log(f'{"":10}name - {name}', end="\n\n")
 
-    return stories_mod(stories, user, count, count)
+    return stories_mod(stories, user, count, count_all)
 
 
 def get_token():
