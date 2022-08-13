@@ -251,6 +251,8 @@ def download_stories(block: dict, stories_type: str, user: str):
         download_preview(block.get("video", {}), "image", output.joinpath("image"), date)
         download_preview(block.get("video", {}), "first_frame", output.joinpath("first_frame"), date)
 
+    save_stories_info(block, output)
+
 
 def download_preview(block: dict, name: str, output: str, date: int):
     if images := block.get(name, 0):
@@ -317,6 +319,12 @@ def get_token():
         f.write(vk_session.token.get("access_token"))
     
     print()
+
+
+def save_stories_info(stories: dict, output: Path):
+    if arguments.ssi and not (file := output.joinpath('storie_info.json')).is_file():
+        with open(file, "w", encoding="utf-8") as fp:
+            json.dump(stories, fp, indent=4)
 
 
 def main():
@@ -406,10 +414,10 @@ parser.add_argument('--dump', action='store_true', dest='dump', help='download o
 parser.add_argument('--token', type=str, dest='token', help='token')
 parser.add_argument('--token-file', type=str, dest='token_file', help='token file')
 parser.add_argument('--path', type=str, default=".", dest='path_stories', help='The path where the stories should be downloaded.')
+parser.add_argument('--save-storie-info', action='store_true', dest='ssi', help='Save info about stories to file "storie_info.json"')
 parser.add_argument('--version', action='version', version=f"VK stories downloader v.{version}")
 
 arguments = parser.parse_args()
-
 ads = arguments.ads
 preview = arguments.preview
 quality = arguments.quality
