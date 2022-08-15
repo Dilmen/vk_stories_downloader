@@ -14,7 +14,7 @@ from pathlib import Path
 import progressbar as pb
 import vk_api
 
-version = "0.4.1"
+__version__ = "0.4.1"
 
 def download_file(url: str, path: Path, title: str = None, attempt: int = 0):
     if attempt >= 10:
@@ -190,8 +190,8 @@ def get_sizes(data: dict):
     return sizes
 
 
-def ar(url: str, output: Path, date: int):
-    check_file = download_file(url, output)
+def ar(url: str, output: Path, date: int, title: str = None):
+    check_file = download_file(url, output, title)
 
     if check_file is not None:
         change_modification_date(check_file, date)
@@ -244,8 +244,13 @@ def download_stories(block: dict, stories_type: str, user: str):
             videos = {video_quality: videos.get(choose_quality, 0)} if choose_quality in videos_quality else {videos_quality[0]: videos.get(videos_quality[0])}
 
         for qulity, url in videos.items():
+            title = None
+
+            if "mycdn" in url:
+                title = f'{qulity}.{url.split("=")[-1]}.mp4'
+
             print_log(f'size - {qulity} | url - {url}')
-            ar(url, output, date)
+            ar(url, output, date, title)
 
     if preview:
         download_preview(block.get("video", {}), "image", output.joinpath("image"), date)
@@ -301,7 +306,6 @@ def sto(stories: dict, count: int, count_all: int):
 
 
 def get_token():
-
     config_filename = ".vk_config.v2.json"
     login = input("Number input: ")
     password = input("Password input: ")
@@ -343,11 +347,12 @@ def main():
                     token = fp.read().replace("\n","").strip()
             elif arguments.token_file != ".token":
                 print_log(f"Error - file {arguments.token_file} not found")
+                return None
             else:
                 get_token()
                 main()
 
-            return None
+                return None
 
         url = f'https://api.vk.com/method/stories.get?access_token={token}&v=5.126'
 
@@ -419,7 +424,9 @@ parser.add_argument('--token', default="", type=str, dest='token', help='token')
 parser.add_argument('--token-file', type=str, default=".token", dest='token_file', help='token file')
 parser.add_argument('--path', type=str, default=".", dest='path_stories', help='The path where the stories should be downloaded.')
 parser.add_argument('--save-storie-info', action='store_true', dest='ssi', help='Save info about stories to file "storie_info.json"')
-parser.add_argument('--version', action='version', version=f"VK stories downloader v.{version}")
+parser.add_argument('--version', action='version', version=f"VK stories downloader v.{__version__}")
+
+#parser.add_argument('--test', action='extend', dest="test", nargs="+") -> list
 
 arguments = parser.parse_args()
 ads = arguments.ads
