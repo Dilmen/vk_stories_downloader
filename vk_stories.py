@@ -156,7 +156,7 @@ def count_stories(datas: dict):
     for stories in datas.get("items"):
         if i := stories.get("stories", 0):
             friends += len(i)
-        if i := stories.get("grouped", 0):
+        elif i := stories.get("grouped", 0):
             for public_stories in i:
                 public += len(public_stories.get("stories"))
 
@@ -332,7 +332,7 @@ def custom_file_name():
 
 
 def save_stories_info(stories: dict, output: Path):
-    if arguments.ssi and not (file := output.joinpath('storie_info.json')).is_file():
+    if arguments.ssi and not (file := output.joinpath('storie_info.json')).is_file() and output.exists():
         with open(file, "w", encoding="utf-8") as fp:
             json.dump(stories, fp, indent=4)
 
