@@ -197,6 +197,38 @@ def ar(url: str, output: Path, date: int, title: str = None):
         change_modification_date(check_file, date)
 
 
+def stories_filter(block: dict):
+    user_list = [[],[]]
+    grouped = -1
+    
+    if arguments.whitelist:
+        for num, stories in enumerate(block.get("response").get("items")):
+            if stories.get("type", 0) == "stories" and str(stories.get("stories")[0].get("owner_id")) not in arguments.whitelist:
+                user_list[0].append(num)
+            elif stories.get("grouped", 0):
+                grouped = num
+                for num, stories_grouped in enumerate(stories.get("grouped")):
+                    if str(stories_grouped.get("stories")[0].get("owner_id")) not in arguments.whitelist:
+                        user_list[1].append(num)
+    elif arguments.blacklist:
+        for num, stories in enumerate(block.get("response").get("items")):
+            if stories.get("type", 0) == "stories" and str(stories.get("stories")[0].get("owner_id")) in arguments.blacklist:
+                user_list[0].append(num)
+            elif stories.get("grouped", 0):
+                grouped = num
+                for num, stories_grouped in enumerate(stories.get("grouped")):
+                    if str(stories_grouped.get("stories")[0].get("owner_id")) in arguments.blacklist:
+                        user_list[1].append(num)
+
+    for user in reversed(user_list[1]):
+        del block.get("response").get("items")[grouped].get("grouped")[user]
+
+    for user in reversed(user_list[0]):
+        del block.get("response").get("items")[user]
+
+    return block
+
+
 def download_stories(block: dict, stories_type: str, user: str):
     output = path_stories.joinpath(f'stories/{user} ({block.get("owner_id")})/{block.get("id")}')
     date = block.get("date")
@@ -385,7 +417,8 @@ def main():
 
     if arguments.dump or not json_file:
         sys.exit()
-
+    
+    data = stories_filter(data)
     adsC, friends, public = count_stories(data.get("response"))
     count_all = count = adsC + friends + public
 
@@ -424,6 +457,8 @@ parser.add_argument('--token', default="", type=str, dest='token', help='token')
 parser.add_argument('--token-file', type=str, default=".token", dest='token_file', help='token file')
 parser.add_argument('--path', type=str, default=".", dest='path_stories', help='The path where the stories should be downloaded.')
 parser.add_argument('--save-storie-info', action='store_true', dest='ssi', help='Save info about stories to file "storie_info.json"')
+parser.add_argument('--whitelist', action='extend', dest="whitelist", nargs="+", default=[], help="download only this storie")
+parser.add_argument('--blacklist', action='extend', dest="blacklist", nargs="+", default=[], help="skip this stories")
 parser.add_argument('--version', action='version', version=f"VK stories downloader v.{__version__}")
 
 #parser.add_argument('--test', action='extend', dest="test", nargs="+") -> list
