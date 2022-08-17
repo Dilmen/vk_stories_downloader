@@ -450,18 +450,16 @@ parser.add_argument('-q', '--quality', type=str, default="max", dest='quality', 
 parser.add_argument('--image-quality', type=str, dest='image_quality', choices=('s', 'm', 'j', 'x', 'y', 'z', 'w'), help='select image quality (default: w)')
 parser.add_argument('--video-quality', type=int, dest='video_quality', choices=(144, 240, 360, 480, 720), help='select quality for video if there is a chooice')
 parser.add_argument('--ads', action='store_true', dest='ads', help='download ads stories')
-parser.add_argument('--sleep',default=3, dest='sleep', help='Provide sleep timer', type=int)
+parser.add_argument('--sleep',default=3, dest='sleep', help='Provide sleep timer', type=int, metavar="SECONDS")
 parser.add_argument('--log', action='store_true', dest='log', help='Write to log file')
 parser.add_argument('--dump', action='store_true', dest='dump', help='download only dump and exit')
 parser.add_argument('--token', default="", type=str, dest='token', help='token')
-parser.add_argument('--token-file', type=str, default=".token", dest='token_file', help='token file')
-parser.add_argument('--path', type=str, default=".", dest='path_stories', help='The path where the stories should be downloaded.')
+parser.add_argument('--token-file', type=str, default=".token", dest='token_file', help='path to file with token', metavar="FILE")
+parser.add_argument('--path', type=str, default=".", dest='path_stories', help='The path where the stories should be downloaded.', metavar="PATH")
 parser.add_argument('--save-storie-info', action='store_true', dest='ssi', help='Save info about stories to file "storie_info.json"')
-parser.add_argument('--whitelist', action='extend', dest="whitelist", nargs="+", default=[], help="download only this storie")
-parser.add_argument('--blacklist', action='extend', dest="blacklist", nargs="+", default=[], help="skip this stories")
+parser.add_argument('--whitelist', action='extend', dest="whitelist", nargs="+", default=[], help="download only this storie with this user/group id", metavar="ID")
+parser.add_argument('--blacklist', action='extend', dest="blacklist", nargs="+", default=[], help="skip stories with this user/group id", metavar="ID")
 parser.add_argument('--version', action='version', version=f"VK stories downloader v.{__version__}")
-
-#parser.add_argument('--test', action='extend', dest="test", nargs="+") -> list
 
 arguments = parser.parse_args()
 ads = arguments.ads
