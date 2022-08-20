@@ -197,28 +197,33 @@ def ar(url: str, output: Path, date: int, title: str = None):
         change_modification_date(check_file, date)
 
 
+def stf(block: dict, lsd: list):
+    if block.get("type") == "stories":
+        if arguments.whitelist:
+            return str(block.get("stories", [{}])[0].get("owner_id")) not in lsd
+        elif arguments.blacklist:
+            return str(block.get("stories", [{}])[0].get("owner_id")) in lsd
+
+    return False
+
+
 def stories_filter(block: dict):
     user_list = [[],[]]
     grouped = -1
-    
-    if arguments.whitelist:
-        for num, stories in enumerate(block.get("response").get("items")):
-            if stories.get("type", 0) == "stories" and str(stories.get("stories")[0].get("owner_id")) not in arguments.whitelist:
-                user_list[0].append(num)
-            elif stories.get("grouped", 0):
-                grouped = num
-                for num, stories_grouped in enumerate(stories.get("grouped")):
-                    if str(stories_grouped.get("stories")[0].get("owner_id")) not in arguments.whitelist:
-                        user_list[1].append(num)
-    elif arguments.blacklist:
-        for num, stories in enumerate(block.get("response").get("items")):
-            if stories.get("type", 0) == "stories" and str(stories.get("stories")[0].get("owner_id")) in arguments.blacklist:
-                user_list[0].append(num)
-            elif stories.get("grouped", 0):
-                grouped = num
-                for num, stories_grouped in enumerate(stories.get("grouped")):
-                    if str(stories_grouped.get("stories")[0].get("owner_id")) in arguments.blacklist:
-                        user_list[1].append(num)
+    lsd = arguments.whitelist if arguments.whitelist else arguments.blacklist
+
+    if not lsd:
+        return block
+
+    for num, stories in enumerate(block.get("response").get("items")):
+        if stf(stories, lsd):
+            user_list[0].append(num)
+        elif stories.get("grouped", 0):
+            grouped = num
+
+            for num, stories_grouped in enumerate(stories.get("grouped")):
+                if stf(stories_grouped, lsd):
+                    user_list[1].append(num)
 
     for user in reversed(user_list[1]):
         del block.get("response").get("items")[grouped].get("grouped")[user]
@@ -337,11 +342,29 @@ def sto(stories: dict, count: int, count_all: int):
     return stories_mod(stories, user, count, count_all)
 
 
+def captcha_handler(captcha):
+    key = input(f"Enter captcha code {captcha.get_url()} : ").strip()
+
+    return captcha.try_again(key)
+
+
+def auth_handler():
+    key = input("Enter authentication code: ")
+    remember_device = True
+
+    return key, remember_device
+
 def get_token():
+    print("Leave empty for exit\n")
+
     config_filename = ".vk_config.v2.json"
-    login = input("Number input: ")
-    password = input("Password input: ")
-    vk_session = vk_api.VkApi(login, password, config_filename=config_filename)
+    login = input("Enter phone number input: ")
+    password = input("Enter password input: ")
+
+    if not login or not password:
+        sys.exit()
+
+    vk_session = vk_api.VkApi(login, password, config_filename=config_filename, captcha_handler=captcha_handler, auth_handler=auth_handler)
 
     try:
         vk_session.auth(token_only=True)
