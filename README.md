@@ -18,8 +18,9 @@ ____
 usage: vk_stories.py [-h] [-f FILE] [-v] [-i] [-p] [-q {all,low,max}]
                      [--image-quality {s,m,j,x,y,z,w}]
                      [--video-quality {144,240,360,480,720}] [--ads]
-                     [--sleep SLEEP] [--log] [--dump] [--token TOKEN]
-                     [--token-file TOKEN_FILE] [--path PATH_STORIES]
+                     [--sleep SECONDS] [--log] [--dump] [--token TOKEN]
+                     [--token-file FILE] [--path PATH] [--save-storie-info]
+                     [--whitelist ID [ID ...]] [--blacklist ID [ID ...]]
                      [--version]
 
 Script to download stories from VK
@@ -37,43 +38,16 @@ options:
   --video-quality {144,240,360,480,720}
                         select quality for video if there is a chooice
   --ads                 download ads stories
-  --sleep SLEEP         Provide sleep timer
+  --sleep SECONDS       Provide sleep timer
   --log                 Write to log file
   --dump                download only dump and exit
   --token TOKEN         token
-  --token-file TOKEN_FILE
-                        token file
-  --path PATH_STORIES   The path where the stories should be downloaded.
+  --token-file FILE     path to file with token
+  --path PATH           The path where the stories should be downloaded.
+  --save-storie-info    Save info about stories to file "storie_info.json"
+  --whitelist ID [ID ...]
+                        download only this storie with this user/group id
+  --blacklist ID [ID ...]
+                        skip stories with this user/group id
   --version             show program's version number and exit
-```
-____
-Directory and file structure
-```
-.
-|-- json
-|   `-- yy-yy-yyyy_yy.yy.yy.json
-|-- logs
-|   `-- yy-yy-yyyy_yy.yy.yy.log
-|-- stories
-|   |-- Name (user_id)
-|   |   |-- stories_id
-|   |   |   |-- xxxxxxxxx.mp4
-|   |   |   |-- first_frame 
-|   |   |   |   |-- first_frame 130x231.jpg
-|   |   |   |   |-- first_frame 160x284.jpg
-|   |   |   |   |-- first_frame 320x569.jpg
-|   |   |   |   `-- first_frame 800x1422.jpg
-|   |   |   `-- image
-|   |   |       |-- image 130x96.jpg
-|   |   |       |-- image 160x120.jpg
-|   |   |       |-- image 320x240.jpg
-|   |   |       `-- image 800x450.jpg
-|   |   `-- stories_id
-|   |       `-- xxxxxxxxx.jpg
-|   `-- Group_name (group_id)
-|       |-- stories_id
-|       |   |-- xxxxxxxxяx.mp4
-|       `-- stories_id
-|           `-- xxxxxxxxxx.mp4
-`-- vk_stories.py
 ```
